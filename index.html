@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>White Whale Launch Evaluator V2</title>
+  <style>
+    :root{
+      --bg0:#020617;
+      --bg1:#081024;
+      --panel:rgba(8,16,36,0.78);
+      --panelSoft:rgba(8,16,36,0.58);
+      --ink:#f8fafc;
+      --muted:#9aa9c0;
+      --line:rgba(255,255,255,0.08);
+      --accent0:#13b4ff;
+      --accent1:#00d4aa;
+      --danger:#ff6b6b;
+      --warn:#ffd166;
+      --good:#7CFC84;
+      --bronze:#c17b42;
+      --silver:#bfc7d5;
+      --gold:#ffd700;
+      --fontHead:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --fontBody:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    body{
+      margin:0;
+      font-family:var(--fontBody);
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 12% 10%, rgba(19,180,255,0.10), transparent 68%),
+        radial-gradient(1000px 700px at 82% 18%, rgba(0,212,170,0.08), transparent 68%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+
+    body::before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.006) 1px, transparent 1px);
+      background-size:44px 44px;
+      opacity:0.55;
+      z-index:0;
+    }
+
+    .wrap{
+      position:relative;
+      z-index:1;
+      width:100%;
+      max-width:1380px;
+      margin:0 auto;
+      padding:28px 18px 56px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:22px;
+      padding:16px 18px;
+      border:1px solid var(--line);
+      background:rgba(2,6,23,0.52);
+      backdrop-filter:blur(12px);
+      border-radius:16px;
+    }
+
+    .brandTitle{
+      font-family:var(--fontHead);
+      font-size:22px;
+      font-weight:800;
+      letter-spacing:-0.03em;
+    }
+
+    .brandSub{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
+
+    .statusPill{
+      border:1px solid rgba(19,180,255,0.28);
+      background:rgba(19,180,255,0.08);
+      color:rgba(248,250,252,0.92);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:0.08em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .hero{
+      margin-bottom:22px;
+      border:1px solid var(--line);
+      background:var(--panelSoft);
+      border-radius:22px;
+      padding:26px 22px;
+      overflow:hidden;
+      position:relative;
+    }
+
+    .hero::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        radial-gradient(800px 420px at 18% 28%, rgba(19,180,255,0.12), transparent 62%),
+        radial-gradient(700px 420px at 82% 24%, rgba(0,212,170,0.10), transparent 62%);
+    }
+
+    .heroInner{
+      position:relative;
+      z-index:1;
+      max-width:900px;
+    }
+
+    .kicker{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      border:1px solid rgba(19,180,255,0.28);
+      background:rgba(19,180,255,0.08);
+      padding:8px 10px 8px 14px;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      border-radius:999px;
+      position:relative;
+    }
+
+    .kicker::before{
+      content:"";
+      position:absolute;
+      left:7px;
+      top:50%;
+      transform:translateY(-50%);
+      width:2px;
+      height:12px;
+      background:linear-gradient(to bottom, var(--accent0), var(--accent1));
+      border-radius:999px;
+    }
+
+    .heroTitle{
+      margin:16px 0 10px;
+      font-family:var(--fontHead);
+      font-size:42px;
+      line-height:1.02;
+      font-weight:800;
+      letter-spacing:-0.045em;
+    }
+
+    .heroSub{
+      color:var(--muted);
+      font-size:15px;
+      line-height:1.75;
+      max-width:820px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:18px;
+    }
+
+    .panel{
+      border:1px solid var(--line);
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:18px 16px;
+      backdrop-filter:blur(8px);
+    }
+
+    .panelTitle{
+      font-family:var(--fontHead);
+      font-size:18px;
+      font-weight:800;
+      margin:0 0 6px;
+    }
+
+    .panelLead{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.65;
+    }
+
+    .sectionBreak{
+      margin:14px 0 10px;
+      padding-top:12px;
+      border-top:1px solid rgba(255,255,255,0.06);
+      font-family:var(--fontHead);
+      font-size:14px;
+      font-weight:800;
+      color:rgba(248,250,252,0.92);
+      letter-spacing:0.01em;
+    }
+
+    .formGrid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .fieldWide{
+      grid-column:1 / -1;
+    }
+
+    .label{
+      font-size:12px;
+      font-weight:800;
+      color:rgba(248,250,252,0.92);
+      letter-spacing:0.02em;
+    }
+
+    .input,
+    .select,
+    .textarea{
+      width:100%;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(2,6,23,0.38);
+      color:var(--ink);
+      border-radius:12px;
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+      font-family:var(--fontBody);
+    }
+
+    .input:focus,
+    .select:focus,
+    .textarea:focus{
+      border-color:rgba(19,180,255,0.55);
+      box-shadow:0 0 0 1px rgba(19,180,255,0.18);
+    }
+
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:transparent;
+      color:var(--ink);
+      padding:12px 14px;
+      font-weight:800;
+      font-size:13px;
+      border-radius:12px;
+      cursor:pointer;
+      font-family:var(--fontBody);
+    }
+
+    .btnPrimary{
+      border-color:rgba(19,180,255,0.42);
+      background:linear-gradient(90deg, rgba(19,180,255,0.18), rgba(0,212,170,0.14));
+    }
+
+    .btn:hover{ border-color:rgba(255,255,255,0.18); }
+    .btnPrimary:hover{ border-color:rgba(19,180,255,0.72); }
+
+    .resultsTop{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    .scoreCard{
+      border:1px solid var(--line);
+      background:rgba(2,6,23,0.30);
+      border-radius:16px;
+      padding:14px 14px 12px;
+    }
+
+    .scoreHead{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:8px;
+    }
+
+    .scoreName{
+      font-family:var(--fontHead);
+      font-size:15px;
+      font-weight:800;
+    }
+
+    .scoreValue{
+      font-family:var(--fontHead);
+      font-size:16px;
+      font-weight:800;
+    }
+
+    .bar{
+      height:10px;
+      border-radius:999px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,0.08);
+      background:rgba(255,255,255,0.03);
+    }
+
+    .fill{
+      height:100%;
+      width:0%;
+      transition:width 380ms ease;
+      background:linear-gradient(90deg, rgba(19,180,255,0.72), rgba(0,212,170,0.48));
+    }
+
+    .fillRisk{
+      background:linear-gradient(90deg, rgba(255,209,102,0.72), rgba(255,107,107,0.58));
+    }
+
+    .scoreText{
+      margin-top:7px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.55;
+    }
+
+    .summaryGrid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .summaryCard{
+      border:1px solid var(--line);
+      background:rgba(2,6,23,0.30);
+      border-radius:16px;
+      padding:16px 14px;
+    }
+
+    .summaryLabel{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:700;
+      letter-spacing:0.04em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    .summaryValue{
+      font-family:var(--fontHead);
+      font-size:22px;
+      font-weight:800;
+      line-height:1.15;
+      letter-spacing:-0.03em;
+    }
+
+    .summarySub{
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.6;
+    }
+
+    .tierBronze{ color:var(--bronze); }
+    .tierSilver{ color:var(--silver); }
+    .tierGold{ color:var(--gold); }
+
+    .lists{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .listCard{
+      border:1px solid var(--line);
+      background:rgba(2,6,23,0.30);
+      border-radius:16px;
+      padding:16px 14px;
+    }
+
+    .listTitle{
+      font-family:var(--fontHead);
+      font-size:16px;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .list{
+      margin:0;
+      padding-left:18px;
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.7;
+    }
+
+    .list li{ margin-bottom:8px; }
+    .empty{ color:var(--muted); font-size:14px; line-height:1.65; }
+
+    .reportArea{
+      margin-top:14px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(2,6,23,0.22);
+      border-radius:16px;
+      padding:14px;
+    }
+
+    .reportBox{
+      width:100%;
+      min-height:180px;
+      resize:vertical;
+    }
+
+    .savedList{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      margin-top:12px;
+    }
+
+    .savedItem{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(2,6,23,0.24);
+      border-radius:12px;
+      padding:10px 12px;
+      font-size:13px;
+    }
+
+    .savedMeta{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      min-width:0;
+    }
+
+    .savedMeta strong{
+      font-family:var(--fontHead);
+      font-size:14px;
+    }
+
+    .savedMeta span{
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .savedActions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .footerNote{
+      margin-top:18px;
+      color:rgba(154,169,192,0.86);
+      font-size:12px;
+      line-height:1.7;
+    }
+
+    @media (min-width: 980px){
+      .grid{
+        grid-template-columns:0.98fr 1.02fr;
+        align-items:start;
+      }
+
+      .formGrid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+      }
+
+      .resultsTop{
+        grid-template-columns:repeat(4, minmax(0,1fr));
+      }
+
+      .summaryGrid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+      }
+
+      .lists{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+      }
+
+      .heroTitle{
+        font-size:56px;
+      }
+    }
+
+    @media print{
+      body::before,
+      .topbar .statusPill,
+      .actions,
+      #savedSection{
+        display:none !important;
+      }
+      body{
+        background:#fff;
+        color:#000;
+      }
+      .panel, .hero, .topbar, .scoreCard, .summaryCard, .listCard, .reportArea{
+        background:#fff;
+        color:#000;
+        border:1px solid #ccc;
+      }
+      .brandSub, .panelLead, .summarySub, .scoreText, .hint, .footerNote, .empty, .list{
+        color:#333 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="brandTitle">White Whale Launch Evaluator V2</div>
+        <div class="brandSub">Weighted internal decision engine for launch risk, structure quality and support tier qualification</div>
+     
+
+    <section class="hero">
+      <div class="heroInner">
+        <div class="kicker">Operator Grade Intake Engine</div>
+        
+        <p class="heroSub">
+          This evaluator scores distribution, liquidity, extraction risk, and project quality. It assigns a launch template, recommends the best support tier, highlights critical structural weaknesses and produces a clean internal summary for operators.
+        </p>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <h2 class="panelTitle">Evaluation Inputs</h2>
+        <p class="panelLead">Use this to classify incoming projects and determine whether they are best suited for Bronze, Silver or Gold support.</p>
+
+        <form id="evalForm" class="formGrid">
+          <div class="sectionBreak fieldWide">Project Identity</div>
+
+          <div class="field">
+            <label class="label" for="projectName">Project Name</label>
+            <input class="input" id="projectName" type="text" placeholder="White Whale" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="ticker">Ticker</label>
+            <input class="input" id="ticker" type="text" placeholder="$WHITEWHALE" />
+          </div>
+
+          <div class="field">
+            <label class="label" for="chain">Chain</label>
+            <select class="select" id="chain">
+              <option value="solana">Solana</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="supply">Total Supply</label>
+            <input class="input" id="supply" type="number" min="0" step="1" placeholder="1000000000" />
+          </div>
+
+          <div class="sectionBreak fieldWide">Launch Structure</div>
+
+          <div class="field">
+            <label class="label" for="lpPercent">Initial Liquidity Percent</label>
+            <input class="input" id="lpPercent" type="number" min="0" max="100" step="0.1" placeholder="15" />
+            <div class="hint">This is the most immediate structural shock absorber in the opening phase.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="teamPercent">Team Allocation Percent</label>
+            <input class="input" id="teamPercent" type="number" min="0" max="100" step="0.1" placeholder="8" />
+            <div class="hint">Higher team concentration compounds trust and future pressure risk.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="maxWallet">Max Wallet Percent</label>
+            <input class="input" id="maxWallet" type="number" min="0" max="100" step="0.1" placeholder="1.5" />
+            <div class="hint">Tighter caps improve spread and reduce early capture.</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="liquidityMode">Liquidity Mode</label>
+            <select class="select" id="liquidityMode">
+              <option value="layered">Layered</option>
+              <option value="reinforced">Reinforced</option>
+              <option value="defensive">Defensive</option>
+              <option value="light">Light</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="launchGoal">Launch Goal</label>
+            <select class="select" id="launchGoal">
+              <option value="balanced">Balanced Discovery</option>
+              <option value="momentum">Momentum</option>
+              <option value="defensive">Defensive Survival</option>
+              <option value="accumulation">Stealth Accumulation</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="launchWindow">Launch Window Pressure</label>
+            <select class="select" id="launchWindow">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div class="sectionBreak fieldWide">Demand and Holder Quality</div>
+
+          <div class="field">
+            <label class="label" for="demandStrength">Demand Strength</label>
+            <select class="select" id="demandStrength">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="communityQuality">Community Quality</label>
+            <select class="select" id="communityQuality">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="holderQuality">Expected Holder Quality</label>
+            <select class="select" id="holderQuality">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="insiderRisk">Insider Risk</label>
+            <select class="select" id="insiderRisk">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="narrativeStrength">Narrative Strength</label>
+            <select class="select" id="narrativeStrength">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="teamDiscipline">Team Discipline</label>
+            <select class="select" id="teamDiscipline">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="sectionBreak fieldWide">Operator Controls</div>
+
+          <div class="field">
+            <label class="label" for="manualTier">Manual Tier Override</label>
+            <select class="select" id="manualTier">
+              <option value="">No Override</option>
+              <option value="Bronze">Force Bronze</option>
+              <option value="Silver">Force Silver</option>
+              <option value="Gold">Force Gold</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="label" for="operatorConfidence">Operator Confidence</label>
+            <select class="select" id="operatorConfidence">
+              <option value="high">High</option>
+              <option value="medium" selected>Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+
+          <div class="field fieldWide">
+            <label class="label" for="notes">Intake Notes</label>
+            <textarea class="textarea" id="notes" rows="5" placeholder="Context from the application, signs of insider pressure, concerns about holder quality, timing notes, launch expectations, or anything relevant from review."></textarea>
+          </div>
+
+          <div class="field fieldWide">
+            <label class="label" for="operatorNotes">Operator Notes</label>
+            <textarea class="textarea" id="operatorNotes" rows="5" placeholder="Internal notes, caveats, sales posture, follow up instructions, or rationale for tier override."></textarea>
+          </div>
+
+          <div class="field fieldWide">
+            <div class="actions">
+              <button class="btn btnPrimary" type="submit">Run Evaluation</button>
+              <button class="btn" type="button" id="saveBtn">Save Snapshot</button>
+              <button class="btn" type="button" id="copyBtn">Copy Summary</button>
+              <button class="btn" type="button" id="printBtn">Print Report</button>
+              <button class="btn" type="button" id="resetBtn">Reset</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2 class="panelTitle">Evaluation Output</h2>
+        <p class="panelLead">Scores represent structural quality, not marketing hype. Higher extraction is worse. Higher quality scores are better.</p>
+
+        <div class="resultsTop">
+          <div class="scoreCard">
+            <div class="scoreHead">
+              <div class="scoreName">Distribution</div>
+              <div class="scoreValue" id="distributionValue">0</div>
+            </div>
+            <div class="bar"><div class="fill" id="distributionFill"></div></div>
+            <div class="scoreText" id="distributionText">Awaiting evaluation.</div>
+          </div>
+
+          <div class="scoreCard">
+            <div class="scoreHead">
+              <div class="scoreName">Liquidity</div>
+              <div class="scoreValue" id="liquidityValue">0</div>
+            </div>
+            <div class="bar"><div class="fill" id="liquidityFill"></div></div>
+            <div class="scoreText" id="liquidityText">Awaiting evaluation.</div>
+          </div>
+
+          <div class="scoreCard">
+            <div class="scoreHead">
+              <div class="scoreName">Extraction Risk</div>
+              <div class="scoreValue" id="riskValue">0</div>
+            </div>
+            <div class="bar"><div class="fill fillRisk" id="riskFill"></div></div>
+            <div class="scoreText" id="riskText">Awaiting evaluation.</div>
+          </div>
+
+          <div class="scoreCard">
+            <div class="scoreHead">
+              <div class="scoreName">Project Quality</div>
+              <div class="scoreValue" id="qualityValue">0</div>
+            </div>
+            <div class="bar"><div class="fill" id="qualityFill"></div></div>
+            <div class="scoreText" id="qualityText">Awaiting evaluation.</div>
+          </div>
+        </div>
+
+        <div class="summaryGrid">
+          <div class="summaryCard">
+            <div class="summaryLabel">Recommended Template</div>
+            <div class="summaryValue" id="templateValue">Not evaluated yet</div>
+            <div class="summarySub" id="templateSub">Run the engine to map this project into a launch template.</div>
+          </div>
+
+          <div class="summaryCard">
+            <div class="summaryLabel">Suggested Tier</div>
+            <div class="summaryValue" id="tierValue">Not evaluated yet</div>
+            <div class="summarySub" id="tierSub">The evaluator will classify the right level of support and intervention.</div>
+          </div>
+
+          <div class="summaryCard">
+            <div class="summaryLabel">Launch Posture</div>
+            <div class="summaryValue" id="postureValue">Not evaluated yet</div>
+            <div class="summarySub" id="postureSub">This describes the operational stance the launch should take.</div>
+          </div>
+
+          <div class="summaryCard">
+            <div class="summaryLabel">Operator Confidence</div>
+            <div class="summaryValue" id="confidenceValue">Not evaluated yet</div>
+            <div class="summarySub" id="confidenceSub">Confidence reflects how much ambiguity remains after intake.</div>
+          </div>
+        </div>
+
+        <div class="lists">
+          <div class="listCard">
+            <div class="listTitle">Key Flags</div>
+            <ul class="list" id="flagsList"></ul>
+            <div class="empty" id="flagsEmpty">No flags yet. Run an evaluation.</div>
+          </div>
+
+          <div class="listCard">
+            <div class="listTitle">Recommended Adjustments</div>
+            <ul class="list" id="recsList"></ul>
+            <div class="empty" id="recsEmpty">No recommendations yet. Run an evaluation.</div>
+          </div>
+        </div>
+
+        <div class="reportArea">
+          <div class="listTitle">Internal Summary</div>
+          <textarea class="textarea reportBox" id="reportBox" readonly placeholder="Run an evaluation to generate a clean internal summary."></textarea>
+        </div>
+
+        <div class="footerNote">
+          This system is designed to force discipline into launch intake, not to guarantee outcomes. It exists to reduce avoidable market structure failure before execution ever begins.
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" id="savedSection" style="margin-top:18px;">
+      <h2 class="panelTitle">Saved Snapshots</h2>
+      <p class="panelLead">Local browser storage only. Useful for comparing applicants and preserving operator judgments.</p>
+      <div id="savedList" class="savedList"></div>
+      <div id="savedEmpty" class="empty">No saved evaluations yet.</div>
+    </section>
+  </div>
+
+  <script>
+    const evalForm = document.getElementById("evalForm");
+    const saveBtn = document.getElementById("saveBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const printBtn = document.getElementById("printBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    const distributionValue = document.getElementById("distributionValue");
+    const liquidityValue = document.getElementById("liquidityValue");
+    const riskValue = document.getElementById("riskValue");
+    const qualityValue = document.getElementById("qualityValue");
+
+    const distributionFill = document.getElementById("distributionFill");
+    const liquidityFill = document.getElementById("liquidityFill");
+    const riskFill = document.getElementById("riskFill");
+    const qualityFill = document.getElementById("qualityFill");
+
+    const distributionText = document.getElementById("distributionText");
+    const liquidityText = document.getElementById("liquidityText");
+    const riskText = document.getElementById("riskText");
+    const qualityText = document.getElementById("qualityText");
+
+    const templateValue = document.getElementById("templateValue");
+    const templateSub = document.getElementById("templateSub");
+    const tierValue = document.getElementById("tierValue");
+    const tierSub = document.getElementById("tierSub");
+    const postureValue = document.getElementById("postureValue");
+    const postureSub = document.getElementById("postureSub");
+    const confidenceValue = document.getElementById("confidenceValue");
+    const confidenceSub = document.getElementById("confidenceSub");
+
+    const flagsList = document.getElementById("flagsList");
+    const recsList = document.getElementById("recsList");
+    const flagsEmpty = document.getElementById("flagsEmpty");
+    const recsEmpty = document.getElementById("recsEmpty");
+    const reportBox = document.getElementById("reportBox");
+
+    const savedList = document.getElementById("savedList");
+    const savedEmpty = document.getElementById("savedEmpty");
+
+    let lastResult = null;
+
+    function num(id){ return Number(document.getElementById(id).value || 0); }
+    function str(id){ return (document.getElementById(id).value || "").trim(); }
+
+    function scoreDistribution(data){
+      let score = 0;
+
+      if(data.max_wallet <= 1) score += 34;
+      else if(data.max_wallet <= 2) score += 26;
+      else if(data.max_wallet <= 3) score += 12;
+
+      if(data.team_percent <= 8) score += 22;
+      else if(data.team_percent <= 12) score += 15;
+      else if(data.team_percent <= 15) score += 8;
+
+      if(data.insider_risk === "low") score += 18;
+      else if(data.insider_risk === "medium") score += 9;
+
+      if(data.holder_quality === "high") score += 14;
+      else if(data.holder_quality === "medium") score += 8;
+
+      if(data.community_quality === "high") score += 12;
+      else if(data.community_quality === "medium") score += 6;
+
+      return Math.min(Math.round(score), 100);
+    }
+
+    function scoreLiquidity(data){
+      let score = 0;
+
+      if(data.lp_percent >= 18) score += 32;
+      else if(data.lp_percent >= 14) score += 25;
+      else if(data.lp_percent >= 10) score += 14;
+
+      if(data.liquidity_mode === "defensive") score += 28;
+      else if(data.liquidity_mode === "reinforced") score += 24;
+      else if(data.liquidity_mode === "layered") score += 18;
+      else if(data.liquidity_mode === "light") score += 8;
+
+      if(data.demand_strength === "high") score += 14;
+      else if(data.demand_strength === "medium") score += 8;
+
+      if(data.launch_window === "low") score += 8;
+      else if(data.launch_window === "medium") score += 4;
+
+      if(data.launch_goal === "defensive") score += 10;
+      if(data.launch_goal === "balanced") score += 6;
+
+      return Math.min(Math.round(score), 100);
+    }
+
+    function scoreExtraction(data){
+      let risk = 0;
+
+      if(data.max_wallet > 2) risk += 22;
+      if(data.max_wallet > 3) risk += 12;
+
+      if(data.lp_percent < 12) risk += 18;
+      if(data.lp_percent < 8) risk += 10;
+
+      if(data.team_percent > 15) risk += 18;
+      else if(data.team_percent > 12) risk += 10;
+
+      if(data.insider_risk === "high") risk += 22;
+      else if(data.insider_risk === "medium") risk += 11;
+
+      if(data.liquidity_mode === "light") risk += 14;
+      if(data.holder_quality === "low") risk += 14;
+      else if(data.holder_quality === "medium") risk += 6;
+
+      if(data.team_discipline === "low") risk += 12;
+      else if(data.team_discipline === "medium") risk += 5;
+
+      if(data.launch_window === "high") risk += 8;
+      if(data.demand_strength === "low") risk += 6;
+
+      return Math.min(Math.round(risk), 100);
+    }
+
+    function scoreProjectQuality(data){
+      let score = 0;
+
+      if(data.demand_strength === "high") score += 20;
+      else if(data.demand_strength === "medium") score += 12;
+
+      if(data.community_quality === "high") score += 20;
+      else if(data.community_quality === "medium") score += 12;
+
+      if(data.holder_quality === "high") score += 18;
+      else if(data.holder_quality === "medium") score += 10;
+
+      if(data.narrative_strength === "high") score += 18;
+      else if(data.narrative_strength === "medium") score += 10;
+
+      if(data.team_discipline === "high") score += 16;
+      else if(data.team_discipline === "medium") score += 8;
+
+      if(data.insider_risk === "low") score += 8;
+      else if(data.insider_risk === "medium") score += 4;
+
+      return Math.min(Math.round(score), 100);
+    }
+
+    function classifyPosture(scores, data){
+      if(scores.extraction >= 70 || data.launch_goal === "defensive") return {
+        name: "Defensive",
+        sub: "This launch should be treated as structurally fragile. Preserve integrity first. Growth comes later."
+      };
+
+      if(scores.extraction >= 40 || data.launch_window === "high") return {
+        name: "Controlled",
+        sub: "This launch needs structure, guardrails, and active observation. It should not be left to chance."
+      };
+
+      if(data.launch_goal === "accumulation" || data.demand_strength === "low") return {
+        name: "Accumulation",
+        sub: "This launch should prioritize quiet spread, base formation, and long term holder quality over velocity."
+      };
+
+      return {
+        name: "Discovery",
+        sub: "This launch can support healthier price discovery if execution remains disciplined."
+      };
+    }
+
+    function assignTemplate(data, scores){
+      if(scores.extraction >= 70 || data.launch_goal === "defensive"){
+        return {
+          name: "Defensive Launch System",
+          sub: "Use when structural fragility, insider pressure, or extraction probability is elevated. This framework prioritizes survival, controlled opening conditions, and downside resilience."
+        };
+      }
+
+      if((scores.extraction >= 40 && data.demand_strength !== "high") || data.launch_goal === "momentum"){
+        if(data.demand_strength === "high" && data.lp_percent < 12){
+          return {
+            name: "High Velocity Controlled Launch",
+            sub: "Use when attention is strong and fast movement is likely, but the opening still needs enough structure to avoid immediate failure."
+          };
+        }
+
+        return {
+          name: "Reinforced Momentum Launch",
+          sub: "Use when demand exists but holder quality is uncertain. This framework reinforces liquidity and reduces early disorder without flattening participation."
+        };
+      }
+
+      if(data.launch_goal === "accumulation" || (scores.quality < 55 && scores.extraction < 40)){
+        return {
+          name: "Stealth Accumulation Launch",
+          sub: "Use when slower formation, quiet spread, and base building are more realistic than early velocity."
+        };
+      }
+
+      return {
+        name: "Balanced Discovery Launch",
+        sub: "Use when organic demand is stronger and the structure is healthy enough to support cleaner price discovery and broader participation."
+      };
+    }
+
+    function autoTier(scores, posture){
+      if(scores.extraction >= 70 || posture.name === "Defensive") return "Gold";
+      if(scores.extraction >= 40 || scores.liquidity < 60 || scores.quality < 55) return "Silver";
+      return "Bronze";
+    }
+
+    function confidenceText(level){
+      if(level === "high") return "Operator has strong conviction in the intake quality and resulting classification.";
+      if(level === "medium") return "The current read is usable, but some uncertainty remains and should be acknowledged.";
+      return "Uncertainty remains high. Manual caution and tighter qualification are recommended.";
+    }
+
+    function textDistribution(score){
+      if(score >= 75) return "Healthy spread profile. The structure supports broader participation and reduces early concentration pressure.";
+      if(score >= 50) return "Moderate spread profile. Usable, but still somewhat sensitive to fast concentration.";
+      return "Weak spread profile. The launch is vulnerable to capture, uneven ownership, and future pressure.";
+    }
+
+    function textLiquidity(score){
+      if(score >= 75) return "Strong support profile. The market should absorb stress better and maintain tradeability.";
+      if(score >= 50) return "Moderate support profile. Liquidity may hold, but pressure could expose weakness.";
+      return "Thin support profile. The opening window is likely fragile and easy to exploit.";
+    }
+
+    function textRisk(score){
+      if(score >= 70) return "High extraction risk. Treat this as a defensive launch requiring active management.";
+      if(score >= 40) return "Moderate extraction risk. Guardrails and operator awareness are needed.";
+      return "Lower extraction risk. Still monitor closely, but the current profile is materially healthier.";
+    }
+
+    function textQuality(score){
+      if(score >= 75) return "Strong project quality profile. The underlying conditions support a cleaner launch environment.";
+      if(score >= 50) return "Moderate quality profile. There is enough signal to work with, but some fragility remains.";
+      return "Weak project quality profile. Structural caution should outweigh optimism in the opening phase.";
+    }
+
+    function buildFlags(data, scores, posture){
+      const flags = [];
+
+      if(data.max_wallet > 2) flags.push("Max wallet is loose enough to allow fast concentration and early dominance.");
+      if(data.max_wallet > 3) flags.push("Max wallet exceeds healthier launch ranges and creates severe spread sensitivity.");
+      if(data.lp_percent < 12) flags.push("Initial liquidity is below the safer range for resilient discovery.");
+      if(data.team_percent > 12) flags.push("Team allocation is elevated enough to influence trust and future pressure.");
+      if(data.insider_risk === "high") flags.push("Insider risk is elevated and should be treated as a core launch threat.");
+      if(data.holder_quality === "low") flags.push("Expected holder quality is weak, raising the probability of one sided extraction behavior.");
+      if(data.team_discipline === "low") flags.push("Team discipline is low, which compounds execution and decision making risk.");
+      if(data.launch_window === "high") flags.push("Launch window pressure is high. That usually compresses decision quality and increases error risk.");
+      if(data.liquidity_mode === "light") flags.push("Liquidity mode is too light for anything other than a very controlled low risk opening.");
+      if(scores.quality < 50) flags.push("Project quality profile is weak enough that structure must do more of the work.");
+      if(posture.name === "Defensive") flags.push("This launch should be approached as a preservation problem, not a momentum problem.");
+
+      if(flags.length === 0){
+        flags.push("No immediate structural red flags detected from the selected parameters.");
+      }
+
+      return flags;
+    }
+
+    function buildRecommendations(data, scores, posture, template, tier){
+      const recs = [];
+
+      if(data.max_wallet > 2) recs.push("Reduce max wallet toward 1 to 2 percent to slow early concentration and improve spread.");
+      if(data.max_wallet > 3) recs.push("Treat wallet concentration as a primary correction before launch.");
+      if(data.lp_percent < 12) recs.push("Increase initial liquidity into a safer range before launch.");
+      else if(data.lp_percent < 14 && template.name !== "High Velocity Controlled Launch") recs.push("Consider a stronger liquidity base to improve support during the opening window.");
+      if(data.team_percent > 12) recs.push("Lower visible concentration where possible or explicitly plan around it in the launch posture.");
+      if(data.insider_risk === "high") recs.push("Shift the launch into a defensive operating mode with tighter constraints and more active management.");
+      if(data.holder_quality === "low") recs.push("Do not rely on early participation quality. Structure should assume fast profit taking behavior.");
+      if(data.team_discipline !== "high") recs.push("Reduce ambiguity in the execution plan. Weak discipline magnifies structural mistakes.");
+      if(data.community_quality === "low") recs.push("Do not assume community demand will compensate for weak structure.");
+      if(data.narrative_strength === "low") recs.push("Avoid overconfidence around momentum. Narrative support is not strong enough to carry a weak opening.");
+      if(posture.name === "Defensive") recs.push("Prepare a tighter operator runbook and treat the first phase as controlled survival.");
+      if(tier === "Gold") recs.push("This project should be handled with hands on operational support through the opening window.");
+      else if(tier === "Silver") recs.push("This project needs structured planning and early monitoring rather than a light touch review.");
+      else recs.push("This project is suitable for a lighter review and recommendation pass if execution remains disciplined.");
+
+      if(scores.distribution >= 75 && scores.liquidity >= 75 && scores.extraction < 40 && scores.quality >= 70){
+        recs.push("Current structure is viable. The main priority is disciplined execution, not major redesign.");
+      }
+
+      return recs;
+    }
+
+    function makeSummary(data, result){
+      const lines = [];
+      lines.push("WHITE WHALE INTERNAL EVALUATION");
+      lines.push("");
+      lines.push("Project: " + (data.project_name || "Unnamed Project"));
+      lines.push("Ticker: " + (data.ticker || "N/A"));
+      lines.push("Chain: " + data.chain);
+      lines.push("");
+      lines.push("Scores");
+      lines.push("Distribution: " + result.scores.distribution);
+      lines.push("Liquidity: " + result.scores.liquidity);
+      lines.push("Extraction Risk: " + result.scores.extraction);
+      lines.push("Project Quality: " + result.scores.quality);
+      lines.push("");
+      lines.push("Template: " + result.template.name);
+      lines.push("Tier: " + result.tier + (result.manual_override ? " (Manual Override)" : ""));
+      lines.push("Launch Posture: " + result.posture.name);
+      lines.push("Operator Confidence: " + data.operator_confidence);
+      lines.push("");
+      lines.push("Key Flags");
+      result.flags.forEach((f, i) => lines.push((i + 1) + ". " + f));
+      lines.push("");
+      lines.push("Recommended Adjustments");
+      result.recommendations.forEach((r, i) => lines.push((i + 1) + ". " + r));
+      lines.push("");
+      if(data.notes){
+        lines.push("Intake Notes");
+        lines.push(data.notes);
+        lines.push("");
+      }
+      if(data.operator_notes){
+        lines.push("Operator Notes");
+        lines.push(data.operator_notes);
+        lines.push("");
+      }
+      return lines.join("\n");
+    }
+
+    function renderList(listEl, emptyEl, items){
+      listEl.innerHTML = "";
+      if(!items || !items.length){
+        emptyEl.style.display = "block";
+        return;
+      }
+      emptyEl.style.display = "none";
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        listEl.appendChild(li);
+      });
+    }
+
+    function collectFormData(){
+      return {
+        project_name: str("projectName"),
+        ticker: str("ticker"),
+        chain: str("chain"),
+        supply: num("supply"),
+        lp_percent: num("lpPercent"),
+        team_percent: num("teamPercent"),
+        max_wallet: num("maxWallet"),
+        liquidity_mode: str("liquidityMode"),
+        launch_goal: str("launchGoal"),
+        launch_window: str("launchWindow"),
+        demand_strength: str("demandStrength"),
+        community_quality: str("communityQuality"),
+        holder_quality: str("holderQuality"),
+        insider_risk: str("insiderRisk"),
+        narrative_strength: str("narrativeStrength"),
+        team_discipline: str("teamDiscipline"),
+        manual_tier: str("manualTier"),
+        operator_confidence: str("operatorConfidence"),
+        notes: str("notes"),
+        operator_notes: str("operatorNotes")
+      };
+    }
+
+    function evaluate(data){
+      const distribution = scoreDistribution(data);
+      const liquidity = scoreLiquidity(data);
+      const extraction = scoreExtraction(data);
+      const quality = scoreProjectQuality(data);
+
+      const scores = { distribution, liquidity, extraction, quality };
+      const posture = classifyPosture(scores, data);
+      const template = assignTemplate(data, scores);
+      const auto_tier = autoTier(scores, posture);
+      const tier = data.manual_tier || auto_tier;
+      const manual_override = Boolean(data.manual_tier);
+      const flags = buildFlags(data, scores, posture);
+      const recommendations = buildRecommendations(data, scores, posture, template, tier);
+
+      return { scores, posture, template, tier, auto_tier, manual_override, flags, recommendations };
+    }
+
+    function render(result, data){
+      distributionValue.textContent = result.scores.distribution;
+      liquidityValue.textContent = result.scores.liquidity;
+      riskValue.textContent = result.scores.extraction;
+      qualityValue.textContent = result.scores.quality;
+
+      distributionFill.style.width = result.scores.distribution + "%";
+      liquidityFill.style.width = result.scores.liquidity + "%";
+      riskFill.style.width = result.scores.extraction + "%";
+      qualityFill.style.width = result.scores.quality + "%";
+
+      distributionText.textContent = textDistribution(result.scores.distribution);
+      liquidityText.textContent = textLiquidity(result.scores.liquidity);
+      riskText.textContent = textRisk(result.scores.extraction);
+      qualityText.textContent = textQuality(result.scores.quality);
+
+      templateValue.textContent = result.template.name;
+      templateSub.textContent = result.template.sub;
+
+      tierValue.textContent = result.tier;
+      tierValue.classList.remove("tierBronze", "tierSilver", "tierGold");
+      if(result.tier === "Bronze") tierValue.classList.add("tierBronze");
+      if(result.tier === "Silver") tierValue.classList.add("tierSilver");
+      if(result.tier === "Gold") tierValue.classList.add("tierGold");
+
+      tierSub.textContent = result.manual_override
+        ? "Tier was manually overridden. Automatic recommendation was " + result.auto_tier + "."
+        : "Automatic tier recommendation based on structural complexity and risk profile.";
+
+      postureValue.textContent = result.posture.name;
+      postureSub.textContent = result.posture.sub;
+
+      confidenceValue.textContent = data.operator_confidence;
+      confidenceSub.textContent = confidenceText(data.operator_confidence);
+
+      renderList(flagsList, flagsEmpty, result.flags);
+      renderList(recsList, recsEmpty, result.recommendations);
+
+      reportBox.value = makeSummary(data, result);
+    }
+
+    function storageKey(){
+      return "wwl_evaluator_snapshots_v2";
+    }
+
+    function getSaved(){
+      try{
+        return JSON.parse(localStorage.getItem(storageKey()) || "[]");
+      }catch(e){
+        return [];
+      }
+    }
+
+    function setSaved(items){
+      localStorage.setItem(storageKey(), JSON.stringify(items));
+    }
+
+    function renderSaved(){
+      const items = getSaved();
+      savedList.innerHTML = "";
+
+      if(!items.length){
+        savedEmpty.style.display = "block";
+        return;
+      }
+
+      savedEmpty.style.display = "none";
+
+      items.forEach((item, idx) => {
+        const row = document.createElement("div");
+        row.className = "savedItem";
+
+        const meta = document.createElement("div");
+        meta.className = "savedMeta";
+        meta.innerHTML = `
+          <strong>${escapeHtml(item.project_name || "Unnamed Project")} ${item.ticker ? "(" + escapeHtml(item.ticker) + ")" : ""}</strong>
+          <span>${escapeHtml(item.tier)} • ${escapeHtml(item.template)} • ${escapeHtml(item.saved_at)}</span>
+        `;
+
+        const actions = document.createElement("div");
+        actions.className = "savedActions";
+
+        const loadBtn = document.createElement("button");
+        loadBtn.className = "btn";
+        loadBtn.textContent = "Load";
+        loadBtn.addEventListener("click", () => loadSnapshot(idx));
+
+        const delBtn = document.createElement("button");
+        delBtn.className = "btn";
+        delBtn.textContent = "Delete";
+        delBtn.addEventListener("click", () => {
+          const next = getSaved();
+          next.splice(idx, 1);
+          setSaved(next);
+          renderSaved();
+        });
+
+        actions.appendChild(loadBtn);
+        actions.appendChild(delBtn);
+
+        row.appendChild(meta);
+        row.appendChild(actions);
+        savedList.appendChild(row);
+      });
+    }
+
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function populateForm(data){
+      document.getElementById("projectName").value = data.project_name || "";
+      document.getElementById("ticker").value = data.ticker || "";
+      document.getElementById("chain").value = data.chain || "solana";
+      document.getElementById("supply").value = data.supply || "";
+      document.getElementById("lpPercent").value = data.lp_percent || "";
+      document.getElementById("teamPercent").value = data.team_percent || "";
+      document.getElementById("maxWallet").value = data.max_wallet || "";
+      document.getElementById("liquidityMode").value = data.liquidity_mode || "layered";
+      document.getElementById("launchGoal").value = data.launch_goal || "balanced";
+      document.getElementById("launchWindow").value = data.launch_window || "medium";
+      document.getElementById("demandStrength").value = data.demand_strength || "medium";
+      document.getElementById("communityQuality").value = data.community_quality || "medium";
+      document.getElementById("holderQuality").value = data.holder_quality || "medium";
+      document.getElementById("insiderRisk").value = data.insider_risk || "medium";
+      document.getElementById("narrativeStrength").value = data.narrative_strength || "medium";
+      document.getElementById("teamDiscipline").value = data.team_discipline || "medium";
+      document.getElementById("manualTier").value = data.manual_tier || "";
+      document.getElementById("operatorConfidence").value = data.operator_confidence || "medium";
+      document.getElementById("notes").value = data.notes || "";
+      document.getElementById("operatorNotes").value = data.operator_notes || "";
+    }
+
+    function loadSnapshot(index){
+      const items = getSaved();
+      const item = items[index];
+      if(!item) return;
+      populateForm(item.data);
+      const result = evaluate(item.data);
+      lastResult = { data: item.data, result };
+      render(result, item.data);
+    }
+
+    evalForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const data = collectFormData();
+      const result = evaluate(data);
+      lastResult = { data, result };
+      render(result, data);
+    });
+
+    saveBtn.addEventListener("click", () => {
+      if(!lastResult) return;
+      const items = getSaved();
+      items.unshift({
+        saved_at: new Date().toLocaleString(),
+        project_name: lastResult.data.project_name,
+        ticker: lastResult.data.ticker,
+        tier: lastResult.result.tier,
+        template: lastResult.result.template.name,
+        data: lastResult.data
+      });
+      setSaved(items.slice(0, 25));
+      renderSaved();
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      if(!reportBox.value) return;
+      try{
+        await navigator.clipboard.writeText(reportBox.value);
+      }catch(e){
+        reportBox.select();
+        document.execCommand("copy");
+      }
+    });
+
+    printBtn.addEventListener("click", () => {
+      if(!lastResult) return;
+      window.print();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      evalForm.reset();
+      distributionValue.textContent = "0";
+      liquidityValue.textContent = "0";
+      riskValue.textContent = "0";
+      qualityValue.textContent = "0";
+
+      distributionFill.style.width = "0%";
+      liquidityFill.style.width = "0%";
+      riskFill.style.width = "0%";
+      qualityFill.style.width = "0%";
+
+      distributionText.textContent = "Awaiting evaluation.";
+      liquidityText.textContent = "Awaiting evaluation.";
+      riskText.textContent = "Awaiting evaluation.";
+      qualityText.textContent = "Awaiting evaluation.";
+
+      templateValue.textContent = "Not evaluated yet";
+      templateSub.textContent = "Run the engine to map this project into a launch template.";
+
+      tierValue.textContent = "Not evaluated yet";
+      tierValue.classList.remove("tierBronze", "tierSilver", "tierGold");
+      tierSub.textContent = "The evaluator will classify the right level of support and intervention.";
+
+      postureValue.textContent = "Not evaluated yet";
+      postureSub.textContent = "This describes the operational stance the launch should take.";
+
+      confidenceValue.textContent = "Not evaluated yet";
+      confidenceSub.textContent = "Confidence reflects how much ambiguity remains after intake.";
+
+      flagsList.innerHTML = "";
+      recsList.innerHTML = "";
+      flagsEmpty.style.display = "block";
+      recsEmpty.style.display = "block";
+      reportBox.value = "";
+      lastResult = null;
+    });
+
+    renderSaved();
+  </script>
+</body>
+</html>
