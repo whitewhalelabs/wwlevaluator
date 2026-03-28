@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WWL Gold Operator Dashboard</title>
+  <style>
+    :root{
+      --bg0:#020617;
+      --bg1:#081024;
+      --panel:rgba(8,16,36,0.78);
+      --panelSoft:rgba(8,16,36,0.58);
+      --ink:#f8fafc;
+      --muted:#9aa9c0;
+      --line:rgba(255,255,255,0.08);
+      --accent0:#13b4ff;
+      --accent1:#00d4aa;
+      --danger:#ff6b6b;
+      --warn:#ffd166;
+      --good:#6ee7b7;
+      --fontHead:"Space Grotesk",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --fontBody:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:var(--fontBody);
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 12% 10%, rgba(19,180,255,0.10), transparent 68%),
+        radial-gradient(1000px 700px at 82% 18%, rgba(0,212,170,0.08), transparent 68%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow-x:hidden;
+    }
+    body::before{
+      content:"";
+      position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        linear-gradient(rgba(255,255,255,0.008) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.006) 1px, transparent 1px);
+      background-size:44px 44px;
+      opacity:0.55;
+    }
+    .wrap{position:relative; z-index:1; max-width:1500px; margin:0 auto; padding:22px 18px 56px}
+    .topbar,.panel{border:1px solid var(--line); background:var(--panel); border-radius:var(--radius); backdrop-filter:blur(10px)}
+    .topbar{
+      display:flex; justify-content:space-between; gap:16px; align-items:flex-start;
+      padding:16px 18px; margin-bottom:18px;
+    }
+    .brandTitle{font-family:var(--fontHead); font-size:22px; font-weight:800; letter-spacing:-0.03em}
+    .brandSub{color:var(--muted); font-size:13px; margin-top:4px; line-height:1.5}
+    .statusPill{border:1px solid rgba(19,180,255,0.28); background:rgba(19,180,255,0.08); padding:10px 12px; border-radius:999px; font-size:12px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap}
+    .hero{padding:22px 20px; margin-bottom:18px; position:relative; overflow:hidden}
+    .hero::after{content:""; position:absolute; inset:0; pointer-events:none; background:
+      radial-gradient(800px 420px at 18% 28%, rgba(19,180,255,0.12), transparent 62%),
+      radial-gradient(700px 420px at 82% 24%, rgba(0,212,170,0.10), transparent 62%);
+    }
+    .heroInner{position:relative; z-index:1; max-width:980px}
+    .kicker{display:inline-flex; align-items:center; gap:10px; border:1px solid rgba(19,180,255,0.28); background:rgba(19,180,255,0.08); padding:8px 10px 8px 14px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; position:relative}
+    .kicker::before{content:""; position:absolute; left:7px; top:50%; transform:translateY(-50%); width:2px; height:12px; background:linear-gradient(to bottom, var(--accent0), var(--accent1))}
+    .heroTitle{margin:14px 0 10px; font-family:var(--fontHead); font-size:44px; line-height:1.02; font-weight:800; letter-spacing:-.045em}
+    .heroSub{color:var(--muted); font-size:15px; line-height:1.75}
+    .grid{display:grid; grid-template-columns:1fr; gap:18px}
+    .panel{padding:16px}
+    .panelTitle{font-family:var(--fontHead); font-size:18px; font-weight:800; margin:0 0 6px}
+    .panelLead{margin:0 0 16px; color:var(--muted); font-size:13px; line-height:1.65}
+    .sessionGrid,.decisionGrid,.signalGrid,.triggerGrid,.twoCol{display:grid; grid-template-columns:1fr; gap:12px}
+    .card{border:1px solid rgba(255,255,255,0.07); background:rgba(2,6,23,.28); border-radius:14px; padding:14px}
+    .smallLabel{font-size:12px; color:var(--muted); font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:8px}
+    .bigValue{font-family:var(--fontHead); font-size:24px; font-weight:800; letter-spacing:-.03em}
+    .subText{color:var(--muted); font-size:12px; line-height:1.6; margin-top:8px}
+    .field{display:flex; flex-direction:column; gap:8px}
+    .label{font-size:12px; font-weight:800; color:rgba(248,250,252,.92); letter-spacing:.02em}
+    .input,.select,.textarea{width:100%; border:1px solid rgba(255,255,255,.10); background:rgba(2,6,23,.38); color:var(--ink); border-radius:12px; padding:12px; font-size:14px; outline:none; font-family:var(--fontBody)}
+    .input:focus,.select:focus,.textarea:focus{border-color:rgba(19,180,255,.55); box-shadow:0 0 0 1px rgba(19,180,255,.18)}
+    .actions{display:flex; flex-wrap:wrap; gap:10px}
+    .btn{appearance:none; border:1px solid var(--line); background:transparent; color:var(--ink); padding:12px 14px; font-weight:800; font-size:13px; border-radius:12px; cursor:pointer}
+    .btnPrimary{border-color:rgba(19,180,255,.42); background:linear-gradient(90deg, rgba(19,180,255,.18), rgba(0,212,170,.14))}
+    .btn:hover{border-color:rgba(255,255,255,.18)}
+    .btnPrimary:hover{border-color:rgba(19,180,255,.72)}
+    .tagRow{display:flex; flex-wrap:wrap; gap:8px}
+    .tag{border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); border-radius:999px; padding:8px 10px; font-size:12px; font-weight:700}
+    .good{color:var(--good)} .warn{color:var(--warn)} .danger{color:var(--danger)}
+    .signalItem{border:1px solid rgba(255,255,255,.06); background:rgba(2,6,23,.22); border-radius:14px; padding:12px}
+    .signalHead{display:flex; justify-content:space-between; gap:12px; align-items:flex-start; margin-bottom:10px}
+    .signalTitle{font-family:var(--fontHead); font-size:15px; font-weight:800}
+    .signalMeta{color:var(--muted); font-size:12px; line-height:1.5}
+    .signalControls{display:grid; grid-template-columns:1fr; gap:8px}
+    .toolLink{display:inline-flex; align-items:center; gap:8px; color:var(--ink); text-decoration:none; font-size:13px; font-weight:700}
+    .toolLink:hover{color:var(--accent0)}
+    .signalNote{margin-top:10px; color:var(--muted); font-size:12px; line-height:1.6}
+    .list{margin:0; padding-left:18px; color:var(--muted); font-size:14px; line-height:1.7}
+    .list li{margin-bottom:8px}
+    .toolsLauncher{display:grid; grid-template-columns:1fr; gap:10px}
+    .toolGrid{display:grid; grid-template-columns:1fr; gap:10px}
+    .toolCard{border:1px solid rgba(255,255,255,.06); background:rgba(2,6,23,.22); border-radius:14px; padding:12px}
+    .toolName{font-family:var(--fontHead); font-size:15px; font-weight:800}
+    .toolDesc{color:var(--muted); font-size:12px; line-height:1.6; margin-top:6px}
+    .notesArea{min-height:200px}
+    .log{display:flex; flex-direction:column; gap:8px; max-height:320px; overflow:auto}
+    .logItem{border:1px solid rgba(255,255,255,.06); background:rgba(2,6,23,.22); border-radius:12px; padding:10px 12px}
+    .logTime{font-size:11px; color:var(--muted); margin-bottom:6px}
+    .logText{font-size:13px; line-height:1.6}
+    .footerNote{margin-top:16px; color:rgba(154,169,192,.86); font-size:12px; line-height:1.7}
+    @media (min-width:900px){
+      .sessionGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+      .decisionGrid{grid-template-columns:1.1fr .9fr}
+      .signalGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .triggerGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+      .twoCol{grid-template-columns:1.1fr .9fr}
+      .toolsLauncher{grid-template-columns:.7fr 1.3fr}
+      .toolGrid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (min-width:1240px){
+      .signalGrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="topbar">
+      <div>
+        <div class="brandTitle">White Whale Gold Operator Dashboard</div>
+        <div class="brandSub">2026 ready launch command system for spot, perps, liquidations, wallet clusters, order flow, and MEV aware decision making.</div>
+      </div>
+      <div class="statusPill">Elite Operations</div>
+    </section>
+
+    <section class="panel hero">
+      <div class="heroInner">
+        <div class="kicker">Live Launch Control</div>
+        <h1 class="heroTitle">One screen for structure, pressure, and action.</h1>
+        <p class="heroSub">Use this as your launch cockpit. Move from fragmented tools to a single decision surface: classify the move, set posture, open the right live systems instantly, and keep a timestamped operator log for post launch review.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2 class="panelTitle">Session Control</h2>
+      <p class="panelLead">Set the launch context first. The dashboard uses this to label posture and generate cleaner live notes.</p>
+      <div class="sessionGrid">
+        <div class="field">
+          <label class="label" for="projectName">Project</label>
+          <input class="input" id="projectName" placeholder="Night Harbor" />
+        </div>
+        <div class="field">
+          <label class="label" for="ticker">Ticker</label>
+          <input class="input" id="ticker" placeholder="$HARBOR" />
+        </div>
+        <div class="field">
+          <label class="label" for="launchStatus">Launch Status</label>
+          <select class="select" id="launchStatus">
+            <option>Pre Launch</option>
+            <option selected>Live</option>
+            <option>Post Launch</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="launchPosture">Current Posture</label>
+          <select class="select" id="launchPosture">
+            <option>Discovery</option>
+            <option selected>Controlled</option>
+            <option>Defensive</option>
+          </select>
+        </div>
+      </div>
+      <div class="sessionGrid" style="margin-top:12px;">
+        <div class="card">
+          <div class="smallLabel">Time Since Launch</div>
+          <div class="bigValue" id="launchTimer">00:00:00</div>
+          <div class="subText">Start the timer when the launch window opens. Use this to anchor notes and intervention decisions.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">What Is This Move</div>
+          <select class="select" id="moveType">
+            <option>Real Demand</option>
+            <option selected>Leverage Driven</option>
+            <option>Bot Driven</option>
+            <option>Liquidity Imbalance</option>
+            <option>Mixed Signals</option>
+          </select>
+          <div class="subText">Classify the move before reacting. This is the top level decision shortcut.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Current Action</div>
+          <select class="select" id="currentAction">
+            <option>Do Nothing</option>
+            <option selected>Stay Cautious</option>
+            <option>Shift Defensive</option>
+            <option>Escalate Team</option>
+          </select>
+          <div class="subText">Keep action language simple so operators stay aligned under pressure.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">One Line Read</div>
+          <div class="bigValue" id="oneLineRead">This move is leverage driven.</div>
+          <div class="subText" id="oneLineSub">Watch open interest and funding before validating price strength.</div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn btnPrimary" id="startTimerBtn">Start Timer</button>
+        <button class="btn" id="pauseTimerBtn">Pause Timer</button>
+        <button class="btn" id="resetTimerBtn">Reset Timer</button>
+        <button class="btn" id="saveSessionBtn">Save Session Snapshot</button>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Primary Decision Panel</h2>
+      <p class="panelLead">Use this before opening any extra tabs. Confirm whether the market is healthy, mixed, or fragile, then set the operational stance.</p>
+      <div class="decisionGrid">
+        <div class="card">
+          <div class="smallLabel">Decision Compression</div>
+          <div class="tagRow" id="decisionTags">
+            <div class="tag warn">Leverage Driven</div>
+            <div class="tag warn">Funding Risk</div>
+            <div class="tag danger">Watch Liquidations</div>
+          </div>
+          <ul class="list" style="margin-top:12px;">
+            <li>Ask if the move is supported by spot liquidity or just perp positioning.</li>
+            <li>Look for clustered wallets before trusting apparent distribution.</li>
+            <li>Treat spoofing, vanishing walls, and repeated same size fills as bot heavy conditions.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Action Guide</div>
+          <div class="bigValue" id="actionGuide">Stay cautious</div>
+          <div class="subText" id="actionGuideSub">This is not strong enough to validate as organic demand. Confirm liquidity and derivatives before changing posture.</div>
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn" data-quick="This move is not supported">Flag Unsupported Move</button>
+            <button class="btn" data-quick="This is leverage driven">Flag Leverage</button>
+            <button class="btn" data-quick="This flow is not organic">Flag Bot Flow</button>
+            <button class="btn" data-quick="This is holding, do nothing">Mark Stable</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Signal Stack</h2>
+      <p class="panelLead">Each module has a status selector, a role definition, and direct links to the live system. Use Healthy, Warning, or Critical to build the live read fast.</p>
+      <div class="signalGrid">
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Spot Price vs Liquidity</div>
+              <div class="signalMeta">Dexscreener for chart, LP, and pair structure</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://dexscreener.com/solana" target="_blank" rel="noopener noreferrer">Open Dexscreener ↗</a>
+          </div>
+          <div class="signalNote">Use this first for price relative to visible liquidity. Thin liquidity plus fast price movement is a classic trap condition.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Trade Flow and Wallet Activity</div>
+              <div class="signalMeta">Birdeye for trades, flow, token stats, and wallet view</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://birdeye.so/" target="_blank" rel="noopener noreferrer">Open Birdeye ↗</a>
+          </div>
+          <div class="signalNote">Check whether flow is two sided or one directional. One sided flow is often artificial and fragile.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Wallet Concentration</div>
+              <div class="signalMeta">Solscan for holder expansion and concentration</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option>Warning</option><option selected>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://solscan.io/" target="_blank" rel="noopener noreferrer">Open Solscan ↗</a>
+          </div>
+          <div class="signalNote">Use this to verify whether the launch is spreading or being captured. Rapid concentration is future sell pressure in disguise.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Perps and Open Interest</div>
+              <div class="signalMeta">Hyperliquid for perps context and order book activity</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://app.hyperliquid.xyz/" target="_blank" rel="noopener noreferrer">Open Hyperliquid ↗</a>
+            <a class="toolLink" href="https://hyperliquid.gitbook.io/hyperliquid-docs/trading/funding" target="_blank" rel="noopener noreferrer">Funding Docs ↗</a>
+          </div>
+          <div class="signalNote">Rising open interest and aggressive perp activity can turn a spot looking chart into a liquidation machine. Validate price against leverage exposure.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Funding and Solana Perps</div>
+              <div class="signalMeta">Drift for Solana native perp context</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://app.drift.trade/" target="_blank" rel="noopener noreferrer">Open Drift ↗</a>
+            <a class="toolLink" href="https://docs.drift.trade/protocol/trading/perpetuals-trading/funding-rates" target="_blank" rel="noopener noreferrer">Funding Rates Docs ↗</a>
+          </div>
+          <div class="signalNote">Use Drift when the token is relevant to Solana perp flows or when you need a second perp lens alongside Hyperliquid.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Liquidation Map</div>
+              <div class="signalMeta">CoinGlass and Hyblock for heatmaps and liquidation clusters</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://www.coinglass.com/liquidations" target="_blank" rel="noopener noreferrer">Open CoinGlass ↗</a>
+            <a class="toolLink" href="https://hyblockcapital.com/" target="_blank" rel="noopener noreferrer">Open Hyblock ↗</a>
+          </div>
+          <div class="signalNote">Liquidation clusters become price magnets. Use them to anticipate where leveraged flows may force the next move.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Wallet Clusters</div>
+              <div class="signalMeta">Bubblemaps for hidden connections and concentration</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://bubblemaps.io/v2" target="_blank" rel="noopener noreferrer">Open Bubblemaps ↗</a>
+          </div>
+          <div class="signalNote">This is where a supposedly broad launch often reveals insider networks. If clusters are obvious, shift closer to defensive posture.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">Order Flow and Liquidity Distribution</div>
+              <div class="signalMeta">CLOBr for aggregated liquidity across Solana venues</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://clobr.io/" target="_blank" rel="noopener noreferrer">Open CLOBr ↗</a>
+            <a class="toolLink" href="https://clobr.io/alerts" target="_blank" rel="noopener noreferrer">Alerts ↗</a>
+          </div>
+          <div class="signalNote">Use CLOBr to see real support and resistance from aggregated liquidity, not just one pool. This is essential when pool by pool reads are misleading.</div>
+        </div>
+
+        <div class="signalItem">
+          <div class="signalHead">
+            <div>
+              <div class="signalTitle">MEV and Searcher Layer</div>
+              <div class="signalMeta">Jito tools and docs for Solana MEV context</div>
+            </div>
+            <select class="select signal-status"><option>Healthy</option><option selected>Warning</option><option>Critical</option></select>
+          </div>
+          <div class="signalControls">
+            <a class="toolLink" href="https://www.jito.wtf/" target="_blank" rel="noopener noreferrer">Open Jito ↗</a>
+            <a class="toolLink" href="https://www.jito.wtf/searchers/" target="_blank" rel="noopener noreferrer">Searcher Tools ↗</a>
+          </div>
+          <div class="signalNote">Use Jito context when repeated same size fills, rapid in and out flow, or suspicious bundle behavior suggests searchers are dominating the tape.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Critical Trigger Panel</h2>
+      <p class="panelLead">Turn live pain points into binary triggers so the team can escalate fast without debating definitions.</p>
+      <div class="triggerGrid">
+        <div class="card">
+          <div class="smallLabel">Concentration Spike</div>
+          <select class="select trigger"><option>Not Triggered</option><option selected>Triggered</option></select>
+          <div class="subText">Use when a few wallets are taking too much too quickly.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Thin Liquidity</div>
+          <select class="select trigger"><option>Not Triggered</option><option selected>Triggered</option></select>
+          <div class="subText">Use when price movement is outpacing support depth.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Open Interest Spike</div>
+          <select class="select trigger"><option>Not Triggered</option><option selected>Triggered</option></select>
+          <div class="subText">Use when perp participation rises faster than spot can justify.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Funding Imbalance</div>
+          <select class="select trigger"><option selected>Not Triggered</option><option>Triggered</option></select>
+          <div class="subText">Use when funding becomes one sided enough to signal crowded positioning.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Bot Dominance</div>
+          <select class="select trigger"><option>Not Triggered</option><option selected>Triggered</option></select>
+          <div class="subText">Use when fills, patterns, or orderbook behavior feel machine controlled.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Liquidation Magnet</div>
+          <select class="select trigger"><option selected>Not Triggered</option><option>Triggered</option></select>
+          <div class="subText">Use when a clear liquidation cluster becomes the likely path of least resistance.</div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn btnPrimary" id="recalculatePostureBtn">Recalculate Posture</button>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Intervention Panel</h2>
+      <p class="panelLead">Choose the condition and the dashboard will generate a practical operator line and next action.</p>
+      <div class="twoCol">
+        <div class="field">
+          <label class="label" for="interventionType">Condition</label>
+          <select class="select" id="interventionType">
+            <option>Market Overheating</option>
+            <option>Early Extraction</option>
+            <option>Liquidity Weakening</option>
+            <option>Healthy Two Sided Flow</option>
+            <option>Leverage Overload</option>
+            <option>Bot Dominance</option>
+            <option>Hidden Concentration</option>
+            <option>Liquidation Magnet</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="customObservation">Custom Observation</label>
+          <input class="input" id="customObservation" placeholder="Few wallets are scaling fast while OI is rising" />
+        </div>
+      </div>
+      <div class="decisionGrid" style="margin-top:12px;">
+        <div class="card">
+          <div class="smallLabel">What To Say</div>
+          <div class="bigValue" id="sayLine" style="font-size:20px;">This move is not supported.</div>
+          <div class="subText" id="saySub">Use this line in team chat or voice immediately.</div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Next Action</div>
+          <div class="bigValue" id="nextAction" style="font-size:20px;">Shift to caution</div>
+          <div class="subText" id="nextActionSub">Confirm spot liquidity, check OI and funding, then reassess posture.</div>
+        </div>
+      </div>
+      <div class="actions" style="margin-top:12px;">
+        <button class="btn btnPrimary" id="applyInterventionBtn">Apply Intervention</button>
+        <button class="btn" id="logInterventionBtn">Log To Notes</button>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Tool Launcher</h2>
+      <p class="panelLead">No searching, no tab hunting. Every core system is here with the role it plays in the launch stack.</p>
+      <div class="toolsLauncher">
+        <div class="card">
+          <div class="smallLabel">Quick Open</div>
+          <div class="field">
+            <label class="label" for="toolSelect">Choose Tool</label>
+            <select class="select" id="toolSelect">
+              <option value="https://dexscreener.com/solana">Dexscreener</option>
+              <option value="https://birdeye.so/">Birdeye</option>
+              <option value="https://solscan.io/">Solscan</option>
+              <option value="https://app.hyperliquid.xyz/">Hyperliquid</option>
+              <option value="https://app.drift.trade/">Drift</option>
+              <option value="https://www.coinglass.com/liquidations">CoinGlass</option>
+              <option value="https://hyblockcapital.com/">Hyblock</option>
+              <option value="https://bubblemaps.io/v2">Bubblemaps</option>
+              <option value="https://clobr.io/">CLOBr</option>
+              <option value="https://www.jito.wtf/">Jito</option>
+            </select>
+          </div>
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn btnPrimary" id="openSelectedToolBtn">Open Selected Tool</button>
+          </div>
+          <div class="subText">Some advanced features may require log in or paid access. Keep free tools open by default and layer premium views only when needed.</div>
+        </div>
+        <div class="toolGrid">
+          <div class="toolCard"><div class="toolName">Dexscreener</div><div class="toolDesc">Fast spot chart and liquidity read. First look for price versus visible pool depth.</div></div>
+          <div class="toolCard"><div class="toolName">Birdeye</div><div class="toolDesc">Trade flow, token stats, wallet activity, and broader token context across chains.</div></div>
+          <div class="toolCard"><div class="toolName">Solscan</div><div class="toolDesc">Wallet distribution, holder concentration, transfers, and token level chain verification.</div></div>
+          <div class="toolCard"><div class="toolName">Hyperliquid</div><div class="toolDesc">Perp order book context, open interest, and leverage driven behavior that spot charts can hide.</div></div>
+          <div class="toolCard"><div class="toolName">Drift</div><div class="toolDesc">Solana native perp context, funding, and leverage behavior from a second derivatives surface.</div></div>
+          <div class="toolCard"><div class="toolName">CoinGlass</div><div class="toolDesc">Liquidations, funding, and broad derivatives context. Great for liquidation magnets and crowding.</div></div>
+          <div class="toolCard"><div class="toolName">Hyblock</div><div class="toolDesc">Premium heatmaps, dashboards, and orderbook aware analytics when more depth is needed.</div></div>
+          <div class="toolCard"><div class="toolName">Bubblemaps</div><div class="toolDesc">Visual holder clustering to reveal hidden concentration and linked wallets.</div></div>
+          <div class="toolCard"><div class="toolName">CLOBr</div><div class="toolDesc">Aggregated liquidity distribution across Solana venues. Best for real support and resistance context.</div></div>
+          <div class="toolCard"><div class="toolName">Jito</div><div class="toolDesc">MEV and searcher context on Solana. Use when bundle behavior or MEV dominance is suspected.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:18px;">
+      <h2 class="panelTitle">Operator Notes and Log</h2>
+      <p class="panelLead">Keep short, timestamped observations. This becomes the post launch review foundation.</p>
+      <div class="twoCol">
+        <div class="card">
+          <div class="smallLabel">Quick Note</div>
+          <textarea class="textarea notesArea" id="notesArea" placeholder="Type observations, risks, and operator judgments here."></textarea>
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn btnPrimary" id="addNoteBtn">Add Timestamped Note</button>
+            <button class="btn" id="copyLogBtn">Copy Log</button>
+            <button class="btn" id="clearLogBtn">Clear Log</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="smallLabel">Session Log</div>
+          <div class="log" id="log"></div>
+        </div>
+      </div>
+      <div class="footerNote">Recommended workflow: Session Control → Signal Stack → Trigger Panel → Intervention Panel → Notes. The goal is decision compression, not data overload.</div>
+    </section>
+  </div>
+
+  <script>
+    const launchTimer = document.getElementById('launchTimer');
+    const startTimerBtn = document.getElementById('startTimerBtn');
+    const pauseTimerBtn = document.getElementById('pauseTimerBtn');
+    const resetTimerBtn = document.getElementById('resetTimerBtn');
+    const saveSessionBtn = document.getElementById('saveSessionBtn');
+    const oneLineRead = document.getElementById('oneLineRead');
+    const oneLineSub = document.getElementById('oneLineSub');
+    const actionGuide = document.getElementById('actionGuide');
+    const actionGuideSub = document.getElementById('actionGuideSub');
+    const moveType = document.getElementById('moveType');
+    const currentAction = document.getElementById('currentAction');
+    const launchPosture = document.getElementById('launchPosture');
+    const decisionTags = document.getElementById('decisionTags');
+    const recalculatePostureBtn = document.getElementById('recalculatePostureBtn');
+    const interventionType = document.getElementById('interventionType');
+    const customObservation = document.getElementById('customObservation');
+    const sayLine = document.getElementById('sayLine');
+    const saySub = document.getElementById('saySub');
+    const nextAction = document.getElementById('nextAction');
+    const nextActionSub = document.getElementById('nextActionSub');
+    const applyInterventionBtn = document.getElementById('applyInterventionBtn');
+    const logInterventionBtn = document.getElementById('logInterventionBtn');
+    const toolSelect = document.getElementById('toolSelect');
+    const openSelectedToolBtn = document.getElementById('openSelectedToolBtn');
+    const notesArea = document.getElementById('notesArea');
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    const copyLogBtn = document.getElementById('copyLogBtn');
+    const clearLogBtn = document.getElementById('clearLogBtn');
+    const log = document.getElementById('log');
+
+    let timerStart = null;
+    let elapsed = 0;
+    let timerInterval = null;
+
+    function formatTime(ms){
+      const total = Math.floor(ms/1000);
+      const hrs = String(Math.floor(total/3600)).padStart(2,'0');
+      const mins = String(Math.floor((total%3600)/60)).padStart(2,'0');
+      const secs = String(total%60).padStart(2,'0');
+      return `${hrs}:${mins}:${secs}`;
+    }
+    function renderTimer(){
+      const nowElapsed = timerStart ? elapsed + (Date.now()-timerStart) : elapsed;
+      launchTimer.textContent = formatTime(nowElapsed);
+    }
+    startTimerBtn.addEventListener('click',()=>{
+      if(timerStart) return;
+      timerStart = Date.now();
+      timerInterval = setInterval(renderTimer,250);
+      renderTimer();
+    });
+    pauseTimerBtn.addEventListener('click',()=>{
+      if(!timerStart) return;
+      elapsed += Date.now()-timerStart;
+      timerStart = null;
+      clearInterval(timerInterval);
+      renderTimer();
+    });
+    resetTimerBtn.addEventListener('click',()=>{
+      timerStart = null; elapsed = 0; clearInterval(timerInterval); renderTimer();
+    });
+    renderTimer();
+
+    const moveMeta = {
+      'Real Demand': ['This is holding, do nothing','Confirm two sided flow and keep posture steady.',['Real Demand','Spot Supported','Healthy Flow']],
+      'Leverage Driven': ['This move is leverage driven','Check open interest, funding, and liquidation zones before validating strength.',['Leverage Driven','Funding Risk','Watch Liquidations']],
+      'Bot Driven': ['This flow is not organic','Check Jito context, repeated fills, and orderbook behavior before changing posture.',['Bot Driven','MEV Risk','Ignore Surface Strength']],
+      'Liquidity Imbalance': ['This move is not supported','Confirm liquidity distribution and do not mistake thin conditions for strength.',['Thin Liquidity','Imbalance','Support Risk']],
+      'Mixed Signals': ['Signals are mixed, stay cautious','Do not over commit to one narrative until spot, perps, and wallets align.',['Mixed Signals','Need Confirmation','Caution']]
+    };
+
+    function updatePrimaryDecision(){
+      const [line,sub,tags] = moveMeta[moveType.value];
+      oneLineRead.textContent = line;
+      oneLineSub.textContent = sub;
+      actionGuide.textContent = currentAction.value.toLowerCase();
+      actionGuideSub.textContent = `Posture is currently ${launchPosture.value}. Use this only after checking spot, perp, wallet, and trigger context.`;
+      decisionTags.innerHTML = '';
+      tags.forEach((t,i)=>{
+        const div = document.createElement('div');
+        div.className = 'tag ' + (i===0?'warn':i===1?'warn':'danger');
+        div.textContent = t;
+        decisionTags.appendChild(div);
+      });
+    }
+    moveType.addEventListener('change',updatePrimaryDecision);
+    currentAction.addEventListener('change',updatePrimaryDecision);
+    launchPosture.addEventListener('change',updatePrimaryDecision);
+    updatePrimaryDecision();
+
+    function countTriggered(){
+      return [...document.querySelectorAll('.trigger')].filter(el=>el.value==='Triggered').length;
+    }
+    recalculatePostureBtn.addEventListener('click',()=>{
+      const n = countTriggered();
+      if(n >= 4){
+        launchPosture.value = 'Defensive';
+        currentAction.value = 'Shift Defensive';
+      } else if(n >= 2){
+        launchPosture.value = 'Controlled';
+        currentAction.value = 'Stay Cautious';
+      } else {
+        launchPosture.value = 'Discovery';
+        currentAction.value = 'Do Nothing';
+      }
+      updatePrimaryDecision();
+      addLog(`Posture recalculated to ${launchPosture.value} with ${n} active triggers.`);
+    });
+
+    const interventionMap = {
+      'Market Overheating': ['This move is not supported','Price is moving faster than structure can justify. Recheck liquidity and leverage before validating continuation.','Shift to caution and confirm support depth.'],
+      'Early Extraction': ['This is getting farmed','Holder quality is weak or early participants are extracting. Lower expectations and preserve structure.','Move closer to defensive posture.'],
+      'Liquidity Weakening': ['Liquidity is thinning','The market is getting fragile. Treat downside risk as elevated until support improves.','Escalate concern and stop calling this strength.'],
+      'Healthy Two Sided Flow': ['This is holding, do nothing','Two sided flow and stable liquidity suggest the structure is functioning.','Maintain current posture and keep observing.'],
+      'Leverage Overload': ['This is leverage driven','Perp participation is likely pulling price around. Expect volatility and possible flushes.','Check OI, funding, and liquidation zones.'],
+      'Bot Dominance': ['This flow is not organic','Repeated fills, disappearing walls, or MEV style behavior suggest machines are steering the tape.','Do not trust surface level orderbook behavior.'],
+      'Hidden Concentration': ['This is more concentrated than it appears','Wallet clusters indicate insider or linked holder control beyond surface metrics.','Treat distribution as weaker than it looks.'],
+      'Liquidation Magnet': ['Price is likely moving toward a liquidation zone','Liquidation clusters can pull price even when spot looks stable.','Prepare the team for a magnet move and potential flush or squeeze.']
+    };
+
+    function updateIntervention(){
+      const [line,sub,next] = interventionMap[interventionType.value];
+      sayLine.textContent = line;
+      saySub.textContent = sub;
+      nextAction.textContent = next;
+      nextActionSub.textContent = customObservation.value ? `Operator note: ${customObservation.value}` : 'Use the live tools to verify this read before escalating further.';
+    }
+    interventionType.addEventListener('change',updateIntervention);
+    customObservation.addEventListener('input',updateIntervention);
+    updateIntervention();
+
+    function stamp(){
+      const now = new Date();
+      return now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+    }
+    function addLog(text){
+      const item = document.createElement('div');
+      item.className = 'logItem';
+      item.innerHTML = `<div class="logTime">${stamp()}</div><div class="logText"></div>`;
+      item.querySelector('.logText').textContent = text;
+      log.prepend(item);
+      saveLogToStorage();
+    }
+    applyInterventionBtn.addEventListener('click',()=>{
+      currentAction.value = nextAction.textContent.includes('Maintain') ? 'Do Nothing' : nextAction.textContent.includes('Escalate') ? 'Escalate Team' : nextAction.textContent.includes('defensive') || nextAction.textContent.includes('Defensive') ? 'Shift Defensive' : 'Stay Cautious';
+      updatePrimaryDecision();
+      addLog(`${interventionType.value}: ${sayLine.textContent} | ${nextAction.textContent}`);
+    });
+    logInterventionBtn.addEventListener('click',()=> addLog(`${interventionType.value}: ${sayLine.textContent}. ${customObservation.value || nextAction.textContent}`));
+
+    openSelectedToolBtn.addEventListener('click',()=>{
+      window.open(toolSelect.value,'_blank','noopener');
+    });
+
+    addNoteBtn.addEventListener('click',()=>{
+      const value = notesArea.value.trim();
+      if(!value) return;
+      addLog(value);
+      notesArea.value = '';
+    });
+    clearLogBtn.addEventListener('click',()=>{
+      log.innerHTML = '';
+      localStorage.removeItem('wwl_gold_dashboard_log');
+    });
+    copyLogBtn.addEventListener('click', async ()=>{
+      const text = [...log.querySelectorAll('.logItem')].map(item => {
+        const t = item.querySelector('.logTime').textContent;
+        const v = item.querySelector('.logText').textContent;
+        return `[${t}] ${v}`;
+      }).join('\n');
+      try{ await navigator.clipboard.writeText(text); } catch(e){}
+    });
+
+    function saveLogToStorage(){
+      const items = [...log.querySelectorAll('.logItem')].map(item => ({
+        time:item.querySelector('.logTime').textContent,
+        text:item.querySelector('.logText').textContent
+      }));
+      localStorage.setItem('wwl_gold_dashboard_log', JSON.stringify(items));
+    }
+    function loadLogFromStorage(){
+      try{
+        const items = JSON.parse(localStorage.getItem('wwl_gold_dashboard_log') || '[]');
+        items.reverse().forEach(({time,text})=>{
+          const item = document.createElement('div');
+          item.className = 'logItem';
+          item.innerHTML = `<div class="logTime">${time}</div><div class="logText"></div>`;
+          item.querySelector('.logText').textContent = text;
+          log.prepend(item);
+        });
+      }catch(e){}
+    }
+    loadLogFromStorage();
+
+    saveSessionBtn.addEventListener('click',()=>{
+      const snapshot = {
+        project: document.getElementById('projectName').value,
+        ticker: document.getElementById('ticker').value,
+        status: document.getElementById('launchStatus').value,
+        posture: launchPosture.value,
+        move: moveType.value,
+        action: currentAction.value,
+        time: launchTimer.textContent
+      };
+      localStorage.setItem('wwl_gold_dashboard_session', JSON.stringify(snapshot));
+      addLog(`Session snapshot saved for ${snapshot.project || 'Unnamed Project'} ${snapshot.ticker || ''} at ${snapshot.time}.`);
+    });
+
+    (function loadSession(){
+      try{
+        const s = JSON.parse(localStorage.getItem('wwl_gold_dashboard_session') || 'null');
+        if(!s) return;
+        document.getElementById('projectName').value = s.project || '';
+        document.getElementById('ticker').value = s.ticker || '';
+        document.getElementById('launchStatus').value = s.status || 'Live';
+        launchPosture.value = s.posture || 'Controlled';
+        moveType.value = s.move || 'Leverage Driven';
+        currentAction.value = s.action || 'Stay Cautious';
+        updatePrimaryDecision();
+      }catch(e){}
+    })();
+
+    document.querySelectorAll('[data-quick]').forEach(btn => {
+      btn.addEventListener('click',()=>{
+        addLog(btn.getAttribute('data-quick'));
+      });
+    });
+  </script>
+</body>
+</html>
