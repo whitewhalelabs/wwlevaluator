@@ -286,7 +286,23 @@
 
     .btn:hover{ border-color:rgba(255,255,255,0.18); }
     .btnPrimary:hover{ border-color:rgba(19,180,255,0.72); }
+.dashboard-btn {
+  background: linear-gradient(90deg, #13b4ff, #00d4aa);
+  border: none;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  transition: all 0.2s ease;
+}
 
+.dashboard-btn:hover {
+  transform: translateY(-1px);
+  opacity: 0.9;
+}
     .resultsTop{
       display:grid;
       grid-template-columns:1fr;
@@ -534,11 +550,12 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="topbar">
-      <div>
-        <div class="brandTitle">White Whale Launch Evaluator V2</div>
-        <div class="brandSub">Weighted internal decision engine for launch risk, structure quality and support tier qualification</div>
-     
+      <div class="topbar">
+  <div>
+    <div class="brandTitle">White Whale Launch Evaluator V2</div>
+    <div class="brandSub">Weighted internal decision engine for launch risk, structure quality and support tier qualification</div>
+  </div>
+</div>
 
     <section class="hero">
       <div class="heroInner">
@@ -547,6 +564,9 @@
         <p class="heroSub">
           This evaluator scores distribution, liquidity, extraction risk and project quality. It assigns a launch template, recommends the best support tier, highlights critical structural weaknesses and produces a clean internal summary for operators.
         </p>
+        <button id="openDashboardBtn" class="dashboard-btn">
+  Enter Gold Dashboard
+</button>
       </div>
     </section>
 
@@ -1434,6 +1454,15 @@
     });
 
     renderSaved();
+    
+    window.addEventListener("DOMContentLoaded", function () {
+  const btn = document.getElementById("openDashboardBtn");
+  if (btn) {
+    btn.addEventListener("click", function () {
+      window.location.href = "dashboard.html";
+    });
+  }
+});
   </script>
 </body>
 </html>
